@@ -10,33 +10,66 @@ import './index.css';
 // // unregister() to register() below. Note this comes with some pitfalls.
 // // Learn more about service workers: https://bit.ly/CRA-PWA
 // serviceWorker.unregister();
-class Square extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state={
-            currState: null
-        }
-    }
-    render() {
-        return (
-            <button className="square" onClick={() => this.setState({currState: 'X'})}>
-              {/*  This is now you access value and writing between html tag would print as rendering process*/}
-              {this.state.currState}
-            </button>
-        );
-    }
+
+
+// class Square extends React.Component {
+//     render() {
+//         return (
+//             <button className="square"
+//                     onClick={() => this.props.onClickHandle()}>
+//                 {/*  This is now you access value and writing between html tag would print as rendering process*/}
+//                 {/*{this.state.props}*/}
+//                 {this.props.currState}
+//             </button>
+//         );
+//     }
+// }
+function Square(props) {
+    return (
+        <button className="square"
+                onClick={props.onClickHandle}>
+            {/*    onClick={() => this.props.onClickHandle()}>*/}
+            {/*  This is now you access value and writing between html tag would print as rendering process*/}
+            {/*{this.state.props}*/}
+            {props.currState}
+        </button>
+    );
 }
 
 class Board extends React.Component {
-    renderSquare(i) {
+    constructor(props) {
+        super(props);
+        this.state = {
+            squareArray: Array(9).fill(null),
+            currState: true
+        }
+    }
+
+    renderSquare(squarCurrVal) {
         //currState is the property passing to Square class render method
         // any method inside square can access this value using this.props.currState.
-        return <Square currState={i}/>;
+        return (<Square currState={this.state.squareArray[squarCurrVal]}
+                        onClickHandle={() => this.handleClick(squarCurrVal)}
+            />
+        );
+    }
+
+    handleClick(i) {
+        const currStateOfBoard = this.state.squareArray.slice();
+        currStateOfBoard[i] = this.state.currState ? 'X' : 'O';
+        this.setState({squareArray: currStateOfBoard});
+        this.state.currState = !this.state.currState
     }
 
     render() {
-        const status = 'Next player: X';
 
+        const winner = calculateWinner(this.state.squareArray);
+        let status;
+        if (winner) {
+            status = 'Player playing with ' + winner +' Win!!! Better luck next time player playing with ' + (winner=='X'?'O':'X');
+        } else {
+            status = 'Next player: ' + (this.state.currState ? 'X' : 'O')
+        }
         return (
             <div>
                 <div className="status">{status}</div>
@@ -65,7 +98,7 @@ class Game extends React.Component {
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board />
+                    <Board/>
                 </div>
                 <div className="game-info">
                     <div>{/* status */}</div>
@@ -74,9 +107,30 @@ class Game extends React.Component {
             </div>
         );
     }
+
 }
 
 ReactDOM.render(
-    <Game />,
+    <Game/>,
     document.getElementById('root')
 );
+
+function calculateWinner(squares) {
+    const lines = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+    ];
+    for (let i = 0; i < lines.length; i++) {
+        const [a, b, c] = lines[i];
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+            return squares[a];
+        }
+    }
+    return null;
+}
